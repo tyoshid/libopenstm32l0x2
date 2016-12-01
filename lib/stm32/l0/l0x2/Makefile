@@ -25,9 +25,8 @@ VPATH		= ..
 CC		= arm-none-eabi-gcc
 AR		= arm-none-eabi-ar
 CFLAGS		= -MMD -Os \
-		  -Wall -Wextra -Wimplicit-function-declaration \
-		  -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes \
-		  -Wundef -Wshadow \
+		  -Wall -Wextra -Wredundant-decls -Wmissing-prototypes \
+		  -Wstrict-prototypes -Wundef -Wshadow \
 		  -I../../../../include -I../../../../include/stm32/l0 \
 		  -I../../../../include/stm32/l0/l0x2 \
 		  -ffreestanding -fno-common \

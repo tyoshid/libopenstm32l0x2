@@ -37,8 +37,8 @@ SIZE		= arm-none-eabi-size
 
 ARCHFLAGS	= -mthumb -mcpu=cortex-m0plus
 CFLAGS		+= -Os \
-		   -Wall -Wextra -Wimplicit-function-declaration \
-		   -Wredundant-decls -Wstrict-prototypes -Wundef \
+		   -Wall -Wextra -Wredundant-decls -Wstrict-prototypes \
+		   -Wundef \
 		   -I$(LIBDIR)/include -I$(LIBDIR)/include/stm32/l0 \
 		   -I$(LIBDIR)/include/stm32/l0/l0x2 \
 		   -fno-common -fsigned-char -fstack-usage $(ARCHFLAGS)
@@ -51,6 +51,12 @@ USARTUTIL	?= $(LIBDIR)/tools/stm32/usart-util/usart-util
 ifneq ($(strip $(USARTUTIL_DEVICE)),)
 USARTUTIL	+= -d $(USARTUTIL_DEVICE)
 endif
+
+ROMSIZE		:= $(shell awk '$$1 == "ROM" { print $$8 * 1024 }' \
+		   $(LIBDIR)/lib/stm32/l0/l0x2/$(LDSCRIPT))
+SIZECHECK	= awk '{ print }; $$1 != "text" && $$1 + $$2 > $(ROMSIZE) \
+		  { printf("ROM overflowed ! (%d + %d > %d)\n", $$1, $$2, \
+		  $(ROMSIZE)); exit 1 }'
 
 .PHONY: all clean flash
 
@@ -76,7 +82,7 @@ all: $(OUTFILES)
 $(NAME).elf: $(OBJS)
 	echo "  $@"
 	$(LD) -o $@ $(OBJS) $(LDFLAGS)
-	$(SIZE) $(NAME).elf
+	$(SIZE) $(NAME).elf | $(SIZECHECK)
 
 $(NORMALOBJS): %.o: %.c
 	echo "  $<"
