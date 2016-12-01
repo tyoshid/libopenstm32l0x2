@@ -42,7 +42,7 @@ int main()
 	struct test_result result[TESTLEN];
 	DECLARE_CRC8_TABLE(crc8_table);
 
-	printf("/* This file was generated automatically -"
+	printf("/* This file was generated automatically - "
 	       "don't edit it. */\n\n");
 	printf("#include \"crc.h\"\n\n");
 	
