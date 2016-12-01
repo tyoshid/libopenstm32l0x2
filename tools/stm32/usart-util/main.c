@@ -177,10 +177,19 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	bzero(&newtio, sizeof(newtio));
-	newtio.c_cflag = baudrate | CS8 | CLOCAL | CREAD | PARENB;
-	newtio.c_iflag = IGNPAR;
-	newtio.c_oflag = 0;
-	newtio.c_lflag = 0;
+        if (cfsetospeed(&newtio, baudrate)) {
+                perror("cfsetospeed() failed");
+                close(fd);
+                fclose(stream);
+                return 1;
+        }
+        if (cfsetispeed(&newtio, baudrate)) {
+                perror("cfsetispeed() failed");
+                close(fd);
+                fclose(stream);
+                return 1;
+        }
+        newtio.c_cflag |= CS8 | CLOCAL | CREAD | PARENB;
 	newtio.c_cc[VTIME] = TIMEOUT;
 	newtio.c_cc[VMIN] = 0;
 	if (tcflush(fd, TCIFLUSH)) {
