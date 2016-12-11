@@ -106,7 +106,7 @@ void syscfg_set_exti_source(int exti, enum syscfg_exti src)
 void syscfg_enable_vrefint(int control)
 {
 	MMIO32(SYSCFG_CFGR3) |= control & (SYSCFG_CFGR3_ENREF_HSI48 |
-					   SYSCFG_CFGR3_ENBUF_VREFINT_COMP |
+					   SYSCFG_CFGR3_ENBUF_VREFINT_COMP2 |
 					   SYSCFG_CFGR3_ENBUF_SENSOR_ADC |
 					   SYSCFG_CFGR3_ENBUF_VREFINT_ADC |
 					   SYSCFG_CFGR3_EN_VREFINT);
@@ -115,7 +115,7 @@ void syscfg_enable_vrefint(int control)
 void syscfg_disable_vrefint(int control)
 {
 	MMIO32(SYSCFG_CFGR3) &= ~(control & (SYSCFG_CFGR3_ENREF_HSI48 |
-					     SYSCFG_CFGR3_ENBUF_VREFINT_COMP |
+					     SYSCFG_CFGR3_ENBUF_VREFINT_COMP2 |
 					     SYSCFG_CFGR3_ENBUF_SENSOR_ADC |
 					     SYSCFG_CFGR3_ENBUF_VREFINT_ADC |
 					     SYSCFG_CFGR3_EN_VREFINT));
