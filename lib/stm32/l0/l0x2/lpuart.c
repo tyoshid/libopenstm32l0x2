@@ -437,3 +437,13 @@ void lpuart_send_break(enum lpuart lpuart)
 {
 	MMIO32(LPUART_RQR(base[lpuart])) = LPUART_RQR_SBKRQ;
 }
+
+void lpuart_enable_clock_in_stop_mode(enum lpuart lpuart)
+{
+	MMIO32(LPUART_CR3(base[lpuart])) |= LPUART_CR3_UCESM;
+}
+
+void lpuart_disable_clock_in_stop_mode(enum lpuart lpuart)
+{
+	MMIO32(LPUART_CR3(base[lpuart])) &= ~LPUART_CR3_UCESM;
+}
