@@ -22,7 +22,7 @@
  *
  * RM0376: Reference manual
  * Ultra-low-power STM32L0x2 advanced ARM-based 32-bit MCUs
- * (19-Feb-2016 Rev 3)
+ * (14-Nov-2016 Rev 4)
  *
  * 28  Universal synchronous asynchronous receiver transmitter (USART)
  */
@@ -185,6 +185,7 @@
 
 /* --- USARTx_CR3 values --------------------------------------------------- */
 
+#define USART_CR3_UCESM			(1 << 23)
 #define USART_CR3_WUFIE			(1 << 22)
 #define USART_CR3_WUS1			(1 << 21)
 #define USART_CR3_WUS0			(1 << 20)
@@ -452,3 +453,5 @@ void usart_flush_receive_data(enum usart usart);
 void usart_enter_mute_mode(enum usart usart);
 void usart_send_break(enum usart usart);
 void usart_restart_autobaudrate(enum usart usart);
+void usart_enable_clock_in_stop_mode(enum usart usart);
+void usart_disable_clock_in_stop_mode(enum usart usart);

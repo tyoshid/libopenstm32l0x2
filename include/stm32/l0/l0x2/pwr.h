@@ -22,7 +22,7 @@
  *
  * RM0376: Reference manual
  * Ultra-low-power STM32L0x2 advanced ARM-based 32-bit MCUs
- * (19-Feb-2016 Rev 3)
+ * (14-Nov-2016 Rev 4)
  *
  * 6  Power control (PWR)
  */
@@ -100,7 +100,7 @@ enum pwr_mode {
 	PWR_LOW_POWER_RUN,
 	PWR_SLEEP,
 	PWR_LOW_POWER_SLEEP,
-	PWR_STOP,
+	PWR_STOP,		/* voltage regulator in main mode */
 	PWR_LOW_POWER_STOP,	/* voltage regulator in low-power mode */
 	PWR_STANDBY
 };

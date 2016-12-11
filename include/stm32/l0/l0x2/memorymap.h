@@ -22,7 +22,7 @@
  *
  * RM0376: Reference manual
  * Ultra-low-power STM32L0x2 advanced ARM-based 32-bit MCUs
- * (19-Feb-2016 Rev 3)
+ * (14-Nov-2016 Rev 4)
  *
  * 2  System and memory overview
  * 3  Flash program memory and data EEPROM (FLASH)

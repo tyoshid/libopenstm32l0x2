@@ -22,7 +22,7 @@
  *
  * RM0376: Reference manual
  * Ultra-low-power STM32L0x2 advanced ARM-based 32-bit MCUs
- * (19-Feb-2016 Rev 3)
+ * (14-Nov-2016 Rev 4)
  *
  * 20  General-purpose timers (TIM2/TIM3)
  * 21  General-purpose timers (TIM21/22)
@@ -874,7 +874,7 @@ enum tim_tim2_etr {
 
 /* TIM3 remap */
 enum {
-	TIM3_PC9_USB_OE = 0,
+	TIM3_PC9_USB_NOE = 0,
 	TIM3_PC9_CH4 = (1 << 4),
 	TIM3_PB5_TIM22_CH2 = 0,
 	TIM3_PB5_CH2 = (1 << 3),
