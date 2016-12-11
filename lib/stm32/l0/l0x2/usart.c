@@ -645,3 +645,13 @@ void usart_restart_autobaudrate(enum usart usart)
 {
 	MMIO32(USART_RQR(base[usart])) = USART_RQR_ABRRQ;
 }
+
+void usart_enable_clock_in_stop_mode(enum usart usart)
+{
+	MMIO32(USART_CR3(base[usart])) |= USART_CR3_UCESM;
+}
+
+void usart_disable_clock_in_stop_mode(enum usart usart)
+{
+	MMIO32(USART_CR3(base[usart])) &= ~USART_CR3_UCESM;
+}
