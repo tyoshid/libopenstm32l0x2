@@ -126,7 +126,7 @@ static void tim_setup(void)
 static void comp_setup(void)
 {
 	rcc_enable_clock(RCC_SYSCFG);
-	syscfg_enable_vrefint(SYSCFG_VREFINT_COMP);
+	syscfg_enable_vrefint(SYSCFG_VREFINT_COMP2 | SYSCFG_EN_VREFINT);
 	comp_init(COMP2, COMP_PA3, COMP_VREFINT, COMP_ENABLE);
 }
 
