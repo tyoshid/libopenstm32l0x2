@@ -115,7 +115,7 @@ static enum v25ter_result s12(char *cmd, char **info)
 	extern int escape_code_guard_time;
 	static char buf[16];
 	char *p;
-	int  n;
+	int n;
 	int i;
 	
 	if (strcmp(cmd, "S12?") == 0) {
@@ -266,13 +266,11 @@ enum v25ter_result v25ter_input_encap(int c, char **info)
 			return command(cmd, info);
 		} else {
 			if (c == '\b') {
-				if (cmd_p != cmd) {
+				if (cmd_p != cmd)
 					cmd_p--;
-				}
 			} else {
-				if (cmd_p < cmd + CMDSIZE - 1) {
+				if (cmd_p < cmd + CMDSIZE - 1)
 					*cmd_p++ = c;
-				}
 			}
 		}
 		break;

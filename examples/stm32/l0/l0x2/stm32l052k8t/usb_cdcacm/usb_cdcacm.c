@@ -525,7 +525,7 @@ int main(void)
 		}
 		if (notify_available() && !notification_busy &&
 		    endpoint_state[NOTIFICATION_INDEX] == EP_STATE_ENABLE &&
-			!suspended) {
+		    !suspended) {
 			notify_tx();
 		}
 		while (suspended)

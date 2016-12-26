@@ -105,7 +105,7 @@ static bool get_encapsulated_response_error(struct usb_setup_data *req)
 {
 	if (req->bmRequestType != (USB_DIR_IN | USB_TYPE_CLASS |
 				   USB_RECIP_INTERFACE))
-			return true;
+		return true;
 	if (req->wIndex != INTERFACE_COMM)
 		return true;
 	if (req->wValue || !req->wLength)
@@ -280,11 +280,11 @@ static int request_send_break(struct usb_setup_data *req)
 		gpio_set_mode(GPIO_OUTPUT, GPIO_PA2);
 		if (req->wValue < 32768) {
 			tim_setup_counter(TIM22, TIMX_CLK_APB2 / 2000,
-					   req->wValue << 1);
+					  req->wValue << 1);
 			tim_enable_counter(TIM22);
 		} else if (req->wValue != 0xffff) {
 			tim_setup_counter(TIM22, TIMX_CLK_APB2 / 1000,
-					   req->wValue);
+					  req->wValue);
 			tim_enable_counter(TIM22);
 		}
 	} else {
