@@ -53,7 +53,7 @@
 #define BUFFER_TABLE_ADDRESS	0
 #define PACKET_MEMORY_START	(BUFFER_TABLE_ADDRESS + \
 				 USBDEVFS_BUFFER_TABLE_SIZE)
-#define DAC_CONFIG		0x90001000 /* MCP4822 config bits: B + A */
+#define DAC_CONFIG		0xb0003000 /* MCP4822 config bits: B + A */
 #define T_POWERUP		1000 /* DS1881 power-up time: 1 ms */
 #define MAXBUF			4 /* Buffer queue size (power of 2) */
 #define TXBUFSIZE		32 /* Tx buffer size (power of 2) */
