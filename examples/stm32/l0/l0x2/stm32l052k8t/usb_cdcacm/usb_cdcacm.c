@@ -60,22 +60,13 @@ extern volatile enum ep_state endpoint_state[];
 extern volatile int databits;
 extern volatile bool parity_mark;
 
-/* Tx buffer */
-int tx_buf[TXBUFSIZE];
-int tx_rp;
-int tx_wp;
+volatile int tx_buf[TXBUFSIZE];
 volatile int tx_len;
-
-/* Rx buffer */
-int rx_buf[RXBUFSIZE];
-int rx_rp;
-int rx_wp;
+volatile int rx_buf[RXBUFSIZE];
 volatile int rx_len;
-
 volatile bool notification_busy;
 volatile bool bulk_rx_busy;
 volatile bool bulk_tx_busy;
-
 volatile bool suspended;
 
 /*
@@ -181,7 +172,9 @@ void usart2_isr(void)
 	int m;
 	int s;
 	int r;
-	
+	static int rx_wp;
+	static int tx_rp;
+
 	m = usart_get_interrupt_mask(USART2, USART_RXNE | USART_TXE |
 				     USART_ORE | USART_NF | USART_FE |
 				     USART_PE);
@@ -290,19 +283,19 @@ static void reset(void)
 static void suspend(void)
 {
 	usbdevfs_enable_suspend_mode();
-	gpio_set(GPIO_PA(4, 5));
 	rcc_disable_clock(RCC_TIM22);
 	rcc_disable_clock(RCC_TIM21);
 	rcc_disable_clock(RCC_TIM6);
 	rcc_disable_clock(RCC_USART2);
+	gpio_set_mode(GPIO_ANALOG, GPIO_PA(0, 1, 2, 3, 4, 5));
 	rcc_disable_clock(RCC_CRS);
+	usbdevfs_enable_low_power_mode();
 	rcc_enable_osc(RCC_MSI);
 	rcc_set_sysclk_source(RCC_MSI);
 	flash_config_access(0, 0);
 	rcc_disable_osc(RCC_PLL);
 	rcc_disable_osc(RCC_HSI16);
 	pwr_set_vos(PWR_1_2V);
-	usbdevfs_enable_low_power_mode();
 	rcc_disable_osc(RCC_HSI48);
 	suspended = true;
 }
@@ -310,19 +303,27 @@ static void suspend(void)
 static void resume(void)
 {
 	rcc_enable_osc(RCC_HSI48);
+	pwr_set_vos(PWR_1_8V);
+	rcc_enable_osc(RCC_HSI16);
+	rcc_enable_osc(RCC_PLL);
+	flash_config_access(1, FLASH_PREFETCH | FLASH_PREREAD);
+	rcc_set_sysclk_source(RCC_PLL);
+	rcc_disable_osc(RCC_MSI);
 	usbdevfs_disable_suspend_mode();
 	if (usbdevfs_get_frame_number() & 0x8000) {
 		usbdevfs_enable_suspend_mode();
 		usbdevfs_enable_low_power_mode();
+		rcc_enable_osc(RCC_MSI);
+		rcc_set_sysclk_source(RCC_MSI);
+		flash_config_access(0, 0);
+		rcc_disable_osc(RCC_PLL);
+		rcc_disable_osc(RCC_HSI16);
+		pwr_set_vos(PWR_1_2V);
 		rcc_disable_osc(RCC_HSI48);
 	} else {
-		pwr_set_vos(PWR_1_8V);
-		rcc_enable_osc(RCC_HSI16);
-		rcc_enable_osc(RCC_PLL);
-		flash_config_access(1, FLASH_PREFETCH | FLASH_PREREAD);
-		rcc_set_sysclk_source(RCC_PLL);
-		rcc_disable_osc(RCC_MSI);
 		rcc_enable_clock(RCC_CRS);
+		gpio_set_mode(GPIO_ALTFUNC, GPIO_PA(0, 1, 2, 3));
+		gpio_set_mode(GPIO_OUTPUT, GPIO_PA(4, 5));
 		rcc_enable_clock(RCC_USART2);
 		rcc_enable_clock(RCC_TIM6);
 		rcc_enable_clock(RCC_TIM21);
@@ -391,6 +392,7 @@ static void usart_rx(void)
 {
 	int i;
 	alignas(2) static char buf[RXBUFSIZE];
+	static int rx_rp;
 
 	nvic_disable_irq(NVIC_USB);
 	if (command_state == ONLINE_DATA_STATE &&
@@ -433,6 +435,8 @@ static void command_tx(void)
 /* Bulk Rx -> USART Tx */
 static void usart_tx(void)
 {
+	static int tx_wp;
+
 	nvic_disable_irq(NVIC_TIM21);
 	nvic_disable_irq(NVIC_USB);
 	usart_disable_interrupt(USART2, USART_TXE);
