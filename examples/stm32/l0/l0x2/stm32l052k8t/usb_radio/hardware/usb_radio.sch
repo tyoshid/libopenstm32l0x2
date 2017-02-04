@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.6.0">
+<eagle version="7.7.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -7940,7 +7940,7 @@ Polymeric Positive Temperature Coefficient device</description>
 <part name="GND18" library="supply1" deviceset="GND" device=""/>
 <part name="R11" library="resistor" deviceset="R-EU_" device="0207/2V" value="2.2k"/>
 <part name="R12" library="resistor" deviceset="R-EU_" device="0207/2V" value="2.2k"/>
-<part name="R13" library="resistor" deviceset="R-EU_" device="0207/2V" value="580"/>
+<part name="R13" library="resistor" deviceset="R-EU_" device="0207/2V" value="560"/>
 <part name="C6" library="cap" deviceset="C-JIS" device="050-024X044" value="6pF"/>
 <part name="JP2" library="jumper" deviceset="JP1E" device=""/>
 <part name="GND19" library="supply1" deviceset="GND" device=""/>
