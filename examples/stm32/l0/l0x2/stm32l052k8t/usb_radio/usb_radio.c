@@ -43,6 +43,7 @@
 #include <usart.h>
 #include <usbdevfs.h>
 #include <scb.h>
+#include <stk.h>
 
 #include <syscall.h>
 
@@ -51,6 +52,7 @@
 #define FCK			32000000 /* USART clock frequency */
 #define TIMX_CLK_APB1		32000000 /* TIM6 clock frequency */
 #define TIMX_CLK_APB2		32000000 /* TIM21 and TIM22 clock frequency */
+#define HCLK			32000000
 #define TXBUFSIZE		32	 /* Tx buffer size (power of 2) */
 #define RXBUFSIZE		32	 /* Rx buffer size (power of 2) */
 #define DEFAULT_RADIO_FREQ	8130	 /* 81.3 MHz (J-WAVE) */
@@ -76,6 +78,11 @@ volatile int usbdevfs_status;
 volatile bool si4737_int;
 static volatile bool si4737_dclk;
 static bool si4737_dout;
+
+volatile int apb2clk = TIMX_CLK_APB2;
+volatile int scount;
+volatile int frame;
+volatile int hclk;
 
 /*
  * Clock
@@ -147,7 +154,7 @@ static void gpio_setup(void)
 	gpio_config(GPIO_AF4, 0, GPIO_PA9);
 	gpio_config(GPIO_AF4, GPIO_PULLUP, GPIO_PA10);
 	gpio_config(GPIO_INPUT, GPIO_PULLUP, GPIO_PA15);
-	
+
 	rcc_enable_clock(RCC_GPIOB);
 	gpio_set(GPIO_PB(0, 1, 5));
 	gpio_config(GPIO_OUTPUT, 0, GPIO_PB(0, 1, 5));
@@ -157,7 +164,8 @@ static void gpio_setup(void)
 /*
  * TIM
  * TIM6: CK_CNT = 2 kHz, one-pulse mode
- * TIM2: one-pulse mode, external clock mode2, /ETR, count = 441, TRGO: enable
+ * TIM2: one-pulse mode, external clock mode2, /ETR, count = 441, TRGO: enable,
+ *       interrupt: update
  *
  * DCLK = 32 MHz / 44.1 kHz / (16 * 2) = 22
  *
@@ -170,7 +178,7 @@ static void gpio_setup(void)
  */
 static void tim_setup(void)
 {
-	int dclk;
+	int dcount;
 	
 	rcc_enable_clock(RCC_TIM6);
 	tim_enable_one_pulse_mode(TIM6);
@@ -178,23 +186,28 @@ static void tim_setup(void)
 	tim_load_prescaler(TIM6, TIMX_CLK_APB1 / 2000);
 
 	rcc_enable_clock(RCC_TIM2);
+	nvic_enable_irq(NVIC_TIM2);
 	tim_enable_one_pulse_mode(TIM2);
 	tim_set_slave_mode(TIM2, TIM_EXTERNAL_CLOCK_MODE2 | TIM_ETR_INVERTED);
 	tim_setup_counter(TIM2, 1, SAMPLING_FREQ / (1000 / MAXBUF));
 	tim_set_master_mode(TIM2, TIM_TRGO_ENABLE);
+	tim_clear_interrupt(TIM2, TIM_UPDATE);
+	tim_enable_interrupt(TIM2, TIM_UPDATE);
 
-	dclk = TIMX_CLK_APB2 / SAMPLING_FREQ /
-		(SAMPLING_BITS * SAMPLING_CHANNELS);
-
+	scount = apb2clk / SAMPLING_FREQ;
+	dcount = scount / (SAMPLING_BITS * SAMPLING_CHANNELS);
+	if (dcount * SAMPLING_BITS * SAMPLING_CHANNELS >= scount - 8)
+		dcount--;
+	
 	rcc_enable_clock(RCC_TIM21);
 	tim_set_slave_mode(TIM21, TIM_TRGI_GATED | TIM_ITR0);
-	tim_setup_counter(TIM21, 1, TIMX_CLK_APB2 / SAMPLING_FREQ);
-	tim_set_counter(TIM21, TIMX_CLK_APB2 / SAMPLING_FREQ - 1);
-	tim_set_capture_compare_value(TIM21_CC1, dclk * SAMPLING_BITS *
+	tim_setup_counter(TIM21, 1, scount);
+	tim_set_counter(TIM21, scount - 1);
+	tim_set_capture_compare_value(TIM21_CC1, dcount * SAMPLING_BITS *
 				      SAMPLING_CHANNELS);
 	tim_set_capture_compare_mode(TIM21_CC1, TIM_CC_OUTPUT | TIM_OC_PWM1 |
 				     TIM_CC_ENABLE);
-	tim_set_capture_compare_value(TIM21_CC2, dclk);
+	tim_set_capture_compare_value(TIM21_CC2, dcount);
 	tim_set_capture_compare_mode(TIM21_CC2, TIM_CC_OUTPUT | TIM_OC_PWM1 |
 				     TIM_CC_ENABLE);
 	tim_set_master_mode(TIM21, TIM_TRGO_OC1REF);
@@ -202,8 +215,8 @@ static void tim_setup(void)
 
 	rcc_enable_clock(RCC_TIM22);
 	tim_set_slave_mode(TIM22, TIM_TRGI_GATED | TIM_ITR0);
-	tim_setup_counter(TIM22, 1, dclk);
-	tim_set_capture_compare_value(TIM22_CC1, dclk / 2);
+	tim_setup_counter(TIM22, 1, dcount);
+	tim_set_capture_compare_value(TIM22_CC1, dcount / 2);
 	tim_set_capture_compare_mode(TIM22_CC1, TIM_CC_OUTPUT | TIM_OC_PWM2 |
 				     TIM_CC_ENABLE);
 	tim_enable_counter(TIM22);
@@ -270,6 +283,36 @@ static void usbdevfs_setup(void)
 	usbdevfs_disable_power_down();
 }
 
+void tim2_isr(void)
+{
+	int dcount;
+
+	if (tim_get_interrupt_status(TIM2, TIM_UPDATE)) {
+		if (frame > SAMPLING_CYCLE) {
+			apb2clk -= TIMX_CLK_APB2 / 100;
+			scount = apb2clk / SAMPLING_FREQ;
+			dcount = scount / (SAMPLING_BITS * SAMPLING_CHANNELS);
+			if (dcount * SAMPLING_BITS * SAMPLING_CHANNELS >=
+			    scount - 8)
+				dcount--;
+			tim_disable_counter(TIM22);
+			tim_disable_capture_compare(TIM21_CC2);
+			tim_setup_counter(TIM21, 1, scount);
+			tim_set_counter(TIM21, scount - 1);
+			tim_set_capture_compare_value(TIM21_CC1,
+						      dcount * SAMPLING_BITS *
+						      SAMPLING_CHANNELS);
+			tim_set_capture_compare_value(TIM21_CC2, dcount);
+			tim_enable_capture_compare(TIM21_CC2);
+			tim_setup_counter(TIM22, 1, dcount);
+			tim_set_capture_compare_value(TIM22_CC1, dcount / 2);
+			tim_enable_counter(TIM22);
+		}
+		frame = 0;
+		tim_clear_interrupt(TIM2, TIM_UPDATE);
+	}
+}
+
 /* Delay: 1 - 32768 ms */
 void delay_ms(int ms)
 {
@@ -302,7 +345,6 @@ void usart1_isr(void)
 
 	m = usart_get_interrupt_mask(USART1, USART_RXNE | USART_TXE);
 	s = usart_get_interrupt_status(USART1, USART_RXNE | USART_TXE);
-
 	if (m & s & USART_RXNE) {
 		if (rx_len < RXBUFSIZE) {
 			rx_buf[rx_wp++] = usart_recv(USART1);
@@ -312,7 +354,6 @@ void usart1_isr(void)
 			usart_flush_receive_data(USART1);
 		}
 	}
-
 	if (m & s & USART_TXE) {
 		if (tx_len) {
 			usart_send(USART1, tx_buf[tx_rp++]);
@@ -349,7 +390,6 @@ int _write(int file, char *ptr, int len)
 		}
 		return i;
 	}
-
 	errno = EIO;
 	return -1;
 }
@@ -373,7 +413,6 @@ int _read(int file, char *ptr, int len)
 		}
 		return i;
 	}
-
 	errno = EIO;
 	return -1;
 }
@@ -426,8 +465,11 @@ static void isochronous(void)
 			(wi + MAXBUF / 2);
 		send_start = false;
 	}
-	if (si4737_dout && ri == wi)
+	if (si4737_dout && ri == wi) {
+		ri = (wi >= MAXBUF / 2) ? (wi - MAXBUF / 2) :
+			(wi + MAXBUF / 2);
 		overrun++;
+	}
 	n = 0;
 	for (i = 0; i < ri; i++)
 		n += length[i];
@@ -456,7 +498,8 @@ void usb_isr(void)
 {
 	int s;
 	int ep_id;
-
+	int n;
+	
 	s = usbdevfs_get_interrupt_status(USBDEVFS_CTR | USBDEVFS_PMAOVR |
 					  USBDEVFS_ERR | USBDEVFS_WKUP |
 					  USBDEVFS_SUSP | USBDEVFS_RESET |
@@ -482,15 +525,23 @@ void usb_isr(void)
 		usbdevfs_clear_interrupt(USBDEVFS_RESET);
 	}
 	if (s & USBDEVFS_SOF) {
-		if (tim_get_interrupt_status(TIM2, TIM_UPDATE)) {
-			tim_set_counter(TIM21,
-					TIMX_CLK_APB2 / SAMPLING_FREQ - 1);
+		nvic_disable_irq(NVIC_TIM2);
+		if (frame == 0) {
+			tim_set_counter(TIM22, 0);
+			tim_set_counter(TIM21, scount - 1);
 			tim_enable_counter(TIM2);
-			tim_clear_interrupt(TIM2, TIM_UPDATE);
 			if (!si4737_dclk)
 				si4737_dclk = true;
 			tim2_enable++;
+
+			stk_disable_counter();
+			n = stk_get_counter();
+			stk_init(0x1000000, STK_HCLK | STK_ENABLE);
+			hclk = hclk ? (0xffffff - n) * 1000 / SAMPLING_CYCLE :
+				HCLK;
 		}
+		frame++;
+		nvic_enable_irq(NVIC_TIM2);
 		usbdevfs_clear_interrupt(USBDEVFS_SOF);
 	}
 }

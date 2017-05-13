@@ -78,7 +78,9 @@ static void debug(void)
 	extern volatile int spi_status;
 	extern volatile int usbdevfs_status;
 	extern volatile int si4737_status;
-	unsigned int tmp[8];
+	extern volatile int apb2clk;
+	extern volatile int hclk;
+	unsigned int tmp[10];
 	
 	nvic_disable_irq(NVIC_USB);
 	tmp[0] = send_packet;
@@ -89,6 +91,8 @@ static void debug(void)
 	tmp[5] = spi_status;
 	tmp[6] = usbdevfs_status;
 	tmp[7] = si4737_status;
+	tmp[8] = apb2clk;
+	tmp[9] = hclk;
 	nvic_enable_irq(NVIC_USB);
 
 	printf("send_packet: %u\n", tmp[0]);
@@ -99,6 +103,8 @@ static void debug(void)
 	printf("spi_status: 0x%04x\n", tmp[5]);
 	printf("usbdevfs_status: 0x%04x\n", tmp[6]);
 	printf("si4737_status: 0x%02x\n", tmp[7]);
+	printf("apb2clk: %u\n", tmp[8]);
+	printf("hclk: %u\n", tmp[9]);
 }
 
 static void help(void)
