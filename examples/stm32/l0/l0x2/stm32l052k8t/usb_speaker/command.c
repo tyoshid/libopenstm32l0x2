@@ -23,7 +23,9 @@ static void debug(void)
 	extern volatile int max_sof_count;
 	extern volatile unsigned int sync_error;
 	extern volatile int i2c_status;	
-	unsigned int tmp[10];
+	extern volatile int apb2clk;
+	extern volatile int hclk;
+	unsigned int tmp[12];
 	
 	nvic_disable_irq(NVIC_USB | NVIC_DMA_CH2_3);
 	tmp[0] = recv_packet;
@@ -35,7 +37,9 @@ static void debug(void)
 	tmp[6] = overrun;
 	tmp[7] = max_sof_count;
 	tmp[8] = sync_error;
-	tmp[9] = i2c_status;	
+	tmp[9] = i2c_status;
+	tmp[10] = apb2clk;
+	tmp[11] = hclk;
 	nvic_enable_irq(NVIC_USB | NVIC_DMA_CH2_3);
 
 	printf("recv_packet: %u\n", tmp[0]);
@@ -48,6 +52,8 @@ static void debug(void)
 	printf("max_sof_count: %u\n", tmp[7]);
 	printf("sync_error: %u\n", tmp[8]);
 	printf("i2c_status: 0x%08x\n", tmp[9]);
+	printf("apb2clk: %u\n", tmp[10]);
+	printf("hclk: %u\n", tmp[11]);
 }
 
 static void help(void)

@@ -41,6 +41,7 @@
 #include <usbdevfs.h>
 #include <i2c.h>
 #include <usart.h>
+#include <stk.h>
 
 #include <syscall.h>
 
@@ -49,7 +50,7 @@
 #define FCK			32000000 /* USART clock frequency */
 #define TIMX_CLK_APB1		32000000 /* TIM6 clock frequency */
 #define TIMX_CLK_APB2		32000000 /* TIM21 clock frequency */
-#define AUTORELOAD		(TIMX_CLK_APB2 / SAMPLING_FREQ)	/* TIM21 */
+#define HCLK			32000000
 #define BUFFER_TABLE_ADDRESS	0
 #define PACKET_MEMORY_START	(BUFFER_TABLE_ADDRESS + \
 				 USBDEVFS_BUFFER_TABLE_SIZE)
@@ -87,6 +88,11 @@ static volatile int tx_len;
 /* Rx buffer */
 static volatile int rx_buf[RXBUFSIZE];
 static volatile int rx_len;
+
+volatile int apb2clk = TIMX_CLK_APB2;
+volatile int scount = TIMX_CLK_APB2 / SAMPLING_FREQ;
+static int frame;
+volatile int hclk;
 
 /*
  * Clock
@@ -172,7 +178,7 @@ static void spi_setup(void)
  * TIM6: CK_CNT = 2 MHz, one-pulse mode
  * TIM21: frequency = SAMPLING_FREQ
  *   OC1:  PWM mode 2 (TIMx_CNT < TIMx_CCR1: inactive),
- *         compare = AUTORELOAD - 4
+ *         compare = TIMX_CLK_APB2 / SAMPLING_FREQ - 4
  * TIM22: external clock mode 1, count = 32
  *   OC1: PWM mode 2 (TIMx_CNT < TIMx_CCR1: inactive), compare = 16
  * TIM2: external clock mode 2, reset mode, count > 16, DMA: update
@@ -187,8 +193,9 @@ static void tim_setup(void)
 	tim_load_prescaler(TIM6, TIMX_CLK_APB1 / 2000000);
 
 	rcc_enable_clock(RCC_TIM21);
-	tim_setup_counter(TIM21, 1, AUTORELOAD);
-	tim_set_capture_compare_value(TIM21_CC1, AUTORELOAD - 4);
+	tim_setup_counter(TIM21, 1, scount);
+	tim_enable_autoreload_preload(TIM21);
+	tim_set_capture_compare_value(TIM21_CC1, scount - 4);
 	tim_set_capture_compare_mode(TIM21_CC1, TIM_CC_OUTPUT | TIM_OC_PWM2 |
 				     TIM_CC_ENABLE);
 
@@ -288,9 +295,14 @@ void dma_ch2_3_isr(void)
 		if (sof_count > max_sof_count)
 			max_sof_count = sof_count;
 		if (sof_count > SAMPLING_CYCLE * 3) {
-			gpio_clear(GPIO_PB1);
 			sync_error++;
 			sof_count = 0;
+			max_sof_count = 0;
+			
+			apb2clk -= TIMX_CLK_APB2 / 100;
+			scount = apb2clk / SAMPLING_FREQ;
+			tim_set_capture_compare_value(TIM21_CC1, scount - 4);
+			tim_set_autoreload(TIM21, scount);
 		}
 	}
 	dma_clear_interrupt(DMA_CH2, DMA_GLOBAL);
@@ -454,7 +466,8 @@ static void isochronous(void)
 static void usb_sof(void)
 {
 	static int start;
-
+	int n;
+	
 	nvic_disable_irq(NVIC_DMA_CH2_3);
 	if (busy) {
 		sof = true;
@@ -465,9 +478,9 @@ static void usb_sof(void)
 		if (length[ri] > AS_SIZE / 2)
 			start = 0;
 		if (start == 0)
-			tim_set_counter(TIM21, AUTORELOAD - 5);
+			tim_set_counter(TIM21, scount - 5);
 		else
-			tim_set_counter(TIM21, AUTORELOAD * start /
+			tim_set_counter(TIM21, scount * start /
 					SAMPLING_CYCLE  - 5);
 		start = (start < SAMPLING_CYCLE - 1) ? (start + 1) : 0;
 		tim_enable_counter(TIM21);
@@ -475,6 +488,16 @@ static void usb_sof(void)
 		sof_count = 0;
 	}
 	nvic_enable_irq(NVIC_DMA_CH2_3);
+
+	if (frame == 0) {
+		stk_disable_counter();
+		n = stk_get_counter();
+		stk_init(0x1000000, STK_HCLK | STK_ENABLE);
+		hclk = hclk ? (0xffffff - n) * 1000 / SAMPLING_CYCLE : HCLK;
+	}
+	frame++;
+	if (frame >= SAMPLING_CYCLE)
+		frame = 0;
 }
 
 void usb_isr(void)
