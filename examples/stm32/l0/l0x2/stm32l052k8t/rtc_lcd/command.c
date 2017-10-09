@@ -361,7 +361,7 @@ static int str_alarm(char **p, int *time, int *ss)
 	if (*p[4] == '*') {
 		t |= (1 << 15);
 	} else {
-		i = strtoul(p[3], &endp, 10);
+		i = strtoul(p[4], &endp, 10);
 		if (*endp != '\0')
 			return 4;
 		if (i < 0 || i >= 60)
