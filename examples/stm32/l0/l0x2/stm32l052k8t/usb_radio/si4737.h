@@ -50,7 +50,7 @@
 #define SI4737_WB_ASQ_STATUS				0x55
 #define SI4737_WB_AGC_STATUS				0x57
 #define SI4737_WB_AGC_OVERRIDE				0x58
-#define SI4737_GPIO_CTRL				0x80
+#define SI4737_GPIO_CTL					0x80
 #define SI4737_GPIO_SET					0x81
 
 /* Properties */
