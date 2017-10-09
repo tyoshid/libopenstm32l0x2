@@ -31,7 +31,7 @@ enum {
 	RIGHT = (1 << 0),
 	DOWN = (1 << 1),
 	LEFT = (1 << 2),
-	CENTER = (1 << 3),
+	ENTER = (1 << 3),
 	UP = (1 << 4)
 };
 

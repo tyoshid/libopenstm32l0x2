@@ -206,7 +206,7 @@ static void idle(void)
 		{LEFT, left},
 		{UP, up},
 		{DOWN, down},
-		{CENTER, 0}
+		{ENTER, 0}
 	};
 	
 	if (!button) {

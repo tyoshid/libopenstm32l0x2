@@ -65,11 +65,11 @@ static void clock_setup(void)
  * PA5: SPI1_SCK	AQM1248 SCLK
  * PA6: output		AQM1248 /RESET
  * PA7: SPI1_MOSI	AQM1248 SDI
- * PB3: input		SW R
- * PB4: input		SW D
+ * PB3: input		SW U
+ * PB4: input		SW R
  * PB5: input		SW L
- * PB6: input		SW C
- * PB7: input		SW U
+ * PB6: input		SW E
+ * PB7: input		SW D
  */
 static void gpio_setup(void)
 {
@@ -137,11 +137,11 @@ void systick_isr(void)
 		int port;
 		int flag;
 	} b[5] = {
-		{GPIO_PB3, RIGHT},
-		{GPIO_PB4, DOWN},
+		{GPIO_PB3, UP},
+		{GPIO_PB4, RIGHT},
 		{GPIO_PB5, LEFT},
-		{GPIO_PB6, CENTER},
-		{GPIO_PB7, UP}
+		{GPIO_PB6, ENTER},
+		{GPIO_PB7, DOWN}
 	};
 	static int low[5];
 	static int high[5];
