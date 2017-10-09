@@ -64,6 +64,7 @@ volatile int tx_buf[TXBUFSIZE];
 volatile int tx_len;
 volatile int rx_buf[RXBUFSIZE];
 volatile int rx_len;
+volatile int rx_rp;
 volatile bool notification_busy;
 volatile bool bulk_rx_busy;
 volatile bool bulk_tx_busy;
@@ -182,14 +183,15 @@ void usart2_isr(void)
 				       USART_ORE | USART_NF | USART_FE |
 				       USART_PE);
 	if (m & s & USART_RXNE) {
+		gpio_toggle(GPIO_PA4);
+		r = usart_recv(USART2);
+		rx_buf[rx_wp++] = r & ((1 << databits) - 1);
+		rx_wp &= RXBUFSIZE - 1;
 		if (rx_len < RXBUFSIZE) {
-			gpio_toggle(GPIO_PA4);
-			r = usart_recv(USART2);
-			rx_buf[rx_wp++] = r & ((1 << databits) - 1);
-			rx_wp &= RXBUFSIZE - 1;
 			rx_len++;
 		} else {
-			usart_flush_receive_data(USART2);
+			rx_rp++;
+			rx_rp &= RXBUFSIZE - 1;
 		}
 	}
 	if (m & s & USART_TXE) {
@@ -392,7 +394,6 @@ static void usart_rx(void)
 {
 	int i;
 	alignas(2) static char buf[RXBUFSIZE];
-	static int rx_rp;
 
 	nvic_disable_irq(NVIC_USB);
 	if (command_state == ONLINE_DATA_STATE &&
@@ -400,7 +401,7 @@ static void usart_rx(void)
 	    !bulk_tx_busy && !suspended) {
 		usart_disable_interrupt(USART2, USART_RXNE);
 		for (i = 0; i < rx_len; i++) {
-			buf[i] = rx_buf[rx_rp++] & ((1 << databits) - 1);
+			buf[i] = rx_buf[rx_rp++];
 			rx_rp &= RXBUFSIZE - 1;
 		}
 		usbdevfs_write(DATA_TX_INDEX, buf, rx_len);
