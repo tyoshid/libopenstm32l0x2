@@ -10,6 +10,8 @@ They form a toolchain for the STM32L0x2.
 This package includes a in-system programming utility (`usart-util`)
 and some examples.
 
+[![A example](https://tyoshid.github.io/libopenstm32l0x2-examples/examples/stm32l052k8t/usb_speaker/panorama.jpg)](https://tyoshid.github.io/libopenstm32l0x2-examples/index.html "Examples")
+
 ## Build
 
 You need to install the ARM bare-metal (no OS) toolchain ([GNU ARM Embedded
