@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.4.0">
+<eagle version="8.3.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
+<setting keepoldvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="0.1" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.01" altunitdist="inch" altunit="inch"/>
@@ -5559,22 +5560,26 @@ DIN A4, landscape with location and doc. field</description>
 <library name="misc">
 <packages>
 <package name="ELECTRODE">
-<pad name="4" x="1.27" y="3.81" drill="0.8"/>
-<pad name="3" x="3.81" y="3.81" drill="0.8"/>
-<pad name="1" x="-3.81" y="-3.81" drill="0.8"/>
-<pad name="2" x="-1.27" y="-3.81" drill="0.8"/>
-<wire x1="-5.08" y1="5.08" x2="5.08" y2="5.08" width="0.127" layer="21"/>
-<wire x1="5.08" y1="5.08" x2="5.08" y2="-5.08" width="0.127" layer="21"/>
-<wire x1="5.08" y1="-5.08" x2="-5.08" y2="-5.08" width="0.127" layer="21"/>
-<wire x1="-5.08" y1="-5.08" x2="-5.08" y2="5.08" width="0.127" layer="21"/>
-<text x="-5.08" y="6.35" size="1.27" layer="25">&gt;NAME</text>
-<text x="-1.27" y="-7.62" size="1.27" layer="25">&gt;VALUE</text>
+<pad name="6" x="1.27" y="5.08" drill="0.8"/>
+<pad name="5" x="3.81" y="5.08" drill="0.8"/>
+<pad name="1" x="-3.81" y="-5.08" drill="0.8"/>
+<pad name="2" x="-1.27" y="-5.08" drill="0.8"/>
+<wire x1="-6.35" y1="6.35" x2="6.35" y2="6.35" width="0.127" layer="21"/>
+<wire x1="6.35" y1="6.35" x2="6.35" y2="-6.35" width="0.127" layer="21"/>
+<wire x1="6.35" y1="-6.35" x2="-6.35" y2="-6.35" width="0.127" layer="21"/>
+<wire x1="-6.35" y1="-6.35" x2="-6.35" y2="6.35" width="0.127" layer="21"/>
+<text x="-5.08" y="7.62" size="1.27" layer="25">&gt;NAME</text>
+<text x="-1.27" y="-8.89" size="1.27" layer="25">&gt;VALUE</text>
+<pad name="3" x="1.27" y="-5.08" drill="0.8"/>
+<pad name="4" x="3.81" y="-5.08" drill="0.8"/>
+<pad name="7" x="-1.27" y="5.08" drill="0.8"/>
+<pad name="8" x="-3.81" y="5.08" drill="0.8"/>
 </package>
 </packages>
 <symbols>
 <symbol name="ELECTRODE">
 <circle x="0" y="0" radius="5.08" width="0.254" layer="94"/>
-<pin name="1" x="-10.16" y="0" length="middle" direction="pas"/>
+<pin name="1" x="-10.16" y="0" visible="pad" length="middle" direction="pas"/>
 <text x="-7.62" y="5.08" size="1.27" layer="95">&gt;NAME</text>
 <text x="-2.54" y="-7.62" size="1.27" layer="96">&gt;VALUE</text>
 </symbol>
@@ -5587,7 +5592,7 @@ DIN A4, landscape with location and doc. field</description>
 <devices>
 <device name="" package="ELECTRODE">
 <connects>
-<connect gate="G$1" pin="1" pad="1 2 3 4"/>
+<connect gate="G$1" pin="1" pad="1 2 3 4 5 6 7 8" route="any"/>
 </connects>
 <technologies>
 <technology name=""/>
