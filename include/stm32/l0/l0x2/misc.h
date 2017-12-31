@@ -30,7 +30,7 @@
  * DS10182: STM32L052x6 STM32L052x8
  * Ultra-low-power 32-bit MCU ARM-based Cortex-M0+, up to 64 KB Flash memory,
  * 8 KB SRAM, 2 KB EEPROM, USB, ADC, DAC
- * (22-Mar-2016 Rev 6)
+ * (11-Sep-2017 Rev 8)
  *
  * Table 7. Temperature sensor calibration values
  * Table 8. Internal voltage reference measured values
@@ -39,7 +39,7 @@
  * DS10183: STM32L062K8 STM32L062T8
  * Ultra-low-power 32-bit MCU ARM-based Cortex-M0+, 64 KB Flash,
  * 8 KB SRAM, 2 KB EEPROM, USB, ADC, DAC, AES
- * (09-Jun-2016 Rev 7)
+ * (11-Sep-2017 Rev 9)
  *
  * Table 6. Temperature sensor calibration values
  * Table 7. Internal voltage reference measured values
@@ -48,7 +48,7 @@
  * DS10689: STM32L072x8 STM32L072xB STM32L072xZ
  * Ultra-low-power 32-bit MCU ARM-based Cortex-M0+, up to 192KB Flash,
  * 20KB SRAM, 6KB EEPROM, USB, ADC, DACs
- * (22-Mar-2016 Rev 3)
+ * (13-Sep-2017 Rev 4)
  *
  * Table 7. Temperature sensor calibration values
  * Table 8. Internal voltage reference measured values
@@ -57,7 +57,7 @@
  * DS10688: STM32L082KB STM32L082KZ STM32L082CZ
  * Ultra-low-power 32-bit MCU ARM-based Cortex-M0+, up to 192KB Flash,
  * 20KB SRAM, 6KB EEPROM, USB, ADC, DACs, AES
- * (03-May-2016 Rev 4)
+ * (14-Sep-2017 Rev 5)
  *
  * Table 6. Temperature sensor calibration values
  * Table 7. Internal voltage reference measured values
