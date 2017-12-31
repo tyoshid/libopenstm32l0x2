@@ -24,7 +24,7 @@ COREPERIPHERAL	= nvic.o stk.o scb.o mpu.o
 NORMALOBJS	= function.o indirection.o command.o monitor.o
 OBJS		= $(PERIPHERAL) $(COREPERIPHERAL) functab.o $(NORMALOBJS)
 OUTFILES	= $(NAME).bin $(NAME).list
-LDSCRIPT	= ldscripts/stm32l0x2x8.x
+LDSCRIPT	= ldscripts/stm32l052x8.x
 LDSPECS		= --specs=nano.specs --specs=nosys.specs
 LIBS		= -lstm32l0x2
 LIBDIR		?= ../../../../../..
@@ -52,12 +52,6 @@ ifneq ($(strip $(USARTUTIL_DEVICE)),)
 USARTUTIL	+= -d $(USARTUTIL_DEVICE)
 endif
 
-ROMSIZE		:= $(shell awk '$$1 == "ROM" { print $$8 * 1024 }' \
-		   $(LIBDIR)/lib/stm32/l0/l0x2/$(LDSCRIPT))
-SIZECHECK	= awk '{ print }; $$1 != "text" && $$1 + $$2 > $(ROMSIZE) \
-		  { printf("ROM overflowed ! (%d + %d > %d)\n", $$1, $$2, \
-		  $(ROMSIZE)); exit 1 }'
-
 .PHONY: all clean flash
 
 all: $(OUTFILES)
@@ -82,7 +76,7 @@ all: $(OUTFILES)
 $(NAME).elf: $(OBJS)
 	echo "  $@"
 	$(LD) -o $@ $(OBJS) $(LDFLAGS)
-	$(SIZE) $(NAME).elf | $(SIZECHECK)
+	$(SIZE) $(NAME).elf
 
 $(NORMALOBJS): %.o: %.c
 	echo "  $<"

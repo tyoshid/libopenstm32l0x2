@@ -1,5 +1,5 @@
 /*
- * Default STM32L072x8 linker script
+ * Default STM32L072xB linker script
  *
  * Copyright 2016 Toshiaki Yoshida <yoshida@mpc.net>
  *
@@ -22,7 +22,7 @@ OUTPUT_ARCH(arm);
 
 MEMORY
 {
-	ROM : ORIGIN = 0x08000000, LENGTH = 64K
+	ROM : ORIGIN = 0x08000000, LENGTH = 128K
 	RAM : ORIGIN = 0x20000000, LENGTH = 20K
 }
 

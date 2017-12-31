@@ -1,7 +1,7 @@
 /*
- * Default STM32L072x8 linker script
+ * Default STM32L052x6 linker script
  *
- * Copyright 2016 Toshiaki Yoshida <yoshida@mpc.net>
+ * Copyright 2015 Toshiaki Yoshida <yoshida@mpc.net>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@ OUTPUT_ARCH(arm);
 
 MEMORY
 {
-	ROM : ORIGIN = 0x08000000, LENGTH = 64K
-	RAM : ORIGIN = 0x20000000, LENGTH = 20K
+	ROM : ORIGIN = 0x08000000, LENGTH = 32K
+	RAM : ORIGIN = 0x20000000, LENGTH = 8K
 }
 
 REGION_ALIAS("REGION_TEXT", ROM);
